@@ -17,5 +17,10 @@
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@types/crawler": "^1.2.4",
+    "axios": "^1.6.0",
+    "crawler": "^1.4.0"
   }
 }
