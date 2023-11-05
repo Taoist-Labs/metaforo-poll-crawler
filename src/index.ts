@@ -40,10 +40,33 @@ async function fetchThread(threadId: number): Promise<any> {
 
 async function main() {
 
-    let threads = await fetchThreadList(12, 1, 20);
+    let data_cate_12 = await fetchThreadList(12, 1, 100); // P3
+    let data_cate_61 = await fetchThreadList(61, 1, 100); // SIP
 
-    for (let i = 0; i < threads.data.threads.length; i++) {
-        let thread = threads.data.threads[i];
+    // console.log(JSON.stringify(data_cate_12.data.threads));
+
+    let threads: any[] = [];
+
+    let tmp_threads = data_cate_12.data.threads;
+    for (let i = 0; i < tmp_threads.length; i++) {
+        let thread = tmp_threads[i];
+        threads.push(thread);
+    }
+
+    tmp_threads = data_cate_61.data.threads;
+    for (let i = 0; i < tmp_threads.length; i++) {
+        let thread = tmp_threads[i];
+        threads.push(thread);
+    }
+
+    console.log(`total threads: ${threads.length}`);
+
+    for (let i = 0; i < threads.length; i++) {
+        let thread = threads[i];
+
+        console.log('-------------------');
+        // console.log(JSON.stringify(thread));
+
         console.log(
             thread.id,
             thread.title,
