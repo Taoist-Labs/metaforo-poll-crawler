@@ -200,8 +200,8 @@ async function summaryNodePollsBySeason(season: number): Promise<any> {
 async function main() {
     // listNodePollsBySeason(1);
     // listNodePollsBySeason(2);
-    listNodePollsBySeason(3);
-    // listNodePollsBySeason(4);
+    // listNodePollsBySeason(3);
+    listNodePollsBySeason(4);
 }
 
 main();
