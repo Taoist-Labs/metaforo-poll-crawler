@@ -154,6 +154,15 @@ async function listNodePollsBySeason(season: number): Promise<any> {
 async function summaryNodePollsBySeason(season: number): Promise<any> {
     let files = await walk(`./s${season}`, (f: string) => f.endsWith('.csv'));
 
+    // fix delimiter issue
+    for (let i = 0; i < files.length; i++) {
+        let file = files[i];
+        console.log(`${file}`);
+        let data = fs.readFileSync(file, 'utf8');
+        data = data.replace(/, /g, ',');
+        fs.writeFileSync(file, data);
+    }
+
     var summary_data: any;
 
     for (let i = 0; i < files.length; i++) {
@@ -176,8 +185,8 @@ async function summaryNodePollsBySeason(season: number): Promise<any> {
             if (summary_data[address] == undefined) {
                 summary_data[address] = {
                     address: address,
-                    name: name,
-                    vote: 0
+                    vote: 0,
+                    name: name
                 }
             }
             summary_data[address].vote += parseInt(vote);
