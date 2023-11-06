@@ -1,10 +1,42 @@
 import fs from "fs";
 import path from "path";
-import axios, { Axios } from "axios";
-import { pipeline } from "stream";
+import axios from "axios";
+import Papa from "papaparse";
+import { stringify } from 'csv-stringify/sync';
 
-import * as stream from 'stream';
-import { promisify } from 'util';
+// Node NFT 
+// token id 1 season 1
+// token id 2 season 2
+// token id 3 season 3
+// token id 4 season 4
+const GATE_NFT_ADDRESS = '0x9d34D407D8586478b3e4c39BE633ED3D7be1c80C';
+
+function walk(dir: string, filter?: (f: string) => boolean): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+        fs.readdir(dir, (error, files) => {
+            if (error) {
+                return reject(error);
+            }
+            Promise.all(files.map((file) => {
+                return new Promise((resolve, reject) => {
+                    const filepath = path.join(dir, file);
+                    fs.stat(filepath, (error, stats) => {
+                        if (error) {
+                            return reject(error);
+                        }
+                        if (stats.isDirectory()) {
+                            walk(filepath, filter).then(resolve);
+                        } else if (typeof filter === 'undefined' || (filter && filter(file))) {
+                            resolve(filepath);
+                        }
+                    });
+                });
+            })).then((foldersContents) => {
+                resolve(foldersContents.reduce((all: any[], folderContents: any) => all.concat(folderContents), []));
+            });
+        });
+    });
+}
 
 async function fetch(url: string): Promise<any> {
     const headers = {
@@ -38,49 +70,51 @@ async function fetchThread(threadId: number): Promise<any> {
     return await fetch(url);
 }
 
-async function main() {
+function saveThreadId(threadId: number) {
+    fs.appendFileSync('thread_ids.txt', `${threadId}\n`);
+}
 
+function checkThreadId(threadId: number): boolean {
+    let threadIds = fs.readFileSync('thread_ids.txt', 'utf8');
+    return threadIds.includes(`${threadId}`);
+}
+
+async function listNodePollsBySeason(season: number): Promise<any> {
     let data_cate_12 = await fetchThreadList(12, 1, 100); // P3
     let data_cate_61 = await fetchThreadList(61, 1, 100); // SIP
 
-    // console.log(JSON.stringify(data_cate_12.data.threads));
-
-    let threads: any[] = [];
+    let threadIds: Map<string, number> = new Map();
 
     let tmp_threads = data_cate_12.data.threads;
     for (let i = 0; i < tmp_threads.length; i++) {
         let thread = tmp_threads[i];
-        threads.push(thread);
+        threadIds.set(thread.id, 1);
     }
 
     tmp_threads = data_cate_61.data.threads;
     for (let i = 0; i < tmp_threads.length; i++) {
         let thread = tmp_threads[i];
-        threads.push(thread);
+        threadIds.set(thread.id, 1);
     }
 
-    console.log(`total threads: ${threads.length}`);
+    console.log(`total threads: ${threadIds.size}`);
 
-    for (let i = 0; i < threads.length; i++) {
-        let thread = threads[i];
 
+    for (var key of threadIds.keys()) {
         console.log('-------------------');
-        // console.log(JSON.stringify(thread));
+        let threadId = parseInt(key);
 
-        console.log(
-            thread.id,
-            thread.title,
-            thread.category_index_id,
-            thread.category_name,
-            thread.category_id,
-            thread.user.username,
-        );
+        if (checkThreadId(threadId)) {
+            console.log(`skip due to already processed ${threadId}.`);
+            continue;
+        }
 
-        let threadJson = await fetchThread(thread.id);
+        let threadJson = await fetchThread(threadId);
         if (threadJson.data.thread.polls.length === 0) {
             continue;
         }
 
+        let threadTitle = threadJson.data.thread.title;
         let poll = threadJson.data.thread.polls[0];
         let pollId = poll.id;
         let pollTitle = poll.title;
@@ -98,35 +132,67 @@ async function main() {
 
         console.log(pollId, pollTitle, pollThreadId, pollCreatedAt, pollUpdatedAt, pollClosedAt, pollStatus, name, is_nft, tokenAddress, tokenId, tokenType, arweaveHash);
 
-
-        if (tokenAddress == '0x9d34D407D8586478b3e4c39BE633ED3D7be1c80C' && tokenId == 4) {
-
-
-            // axios.get(`https://arweave.net/tx/${arweaveHash}/data.csv`, { responseType: 'blob' }).then(response => {
-            //     fs.writeFile(`./thread$-${thread.id}-${thread.title}.csv`, response.data, (err) => {
-            //         if (err) throw err;
-            //         console.log('The file has been saved!');
-            //     });
-            // });
-
+        if (tokenAddress == GATE_NFT_ADDRESS && tokenId == season) {
             const fileUrl = `https://arweave.net/tx/${arweaveHash}/data.csv`;
-            const fileName = `./thread-${thread.id}-${thread.title}.csv`;
-
+            const fileName = `./s${season}/thread-${threadId}-${threadTitle}.csv`;
             console.log(`downloading ${fileUrl} to ${fileName}`);
-
             const reponse = await axios.get(fileUrl, { responseType: 'stream' });
             const writer = fs.createWriteStream(fileName);
             reponse.data.pipe(writer);
-
-
             console.log('download successful');
         } else {
-            console.log('skip due to not P3.');
+            console.log(`skip due to not gated by NFT ${GATE_NFT_ADDRESS} season ${season}.`);
         }
 
-
+        saveThreadId(threadId);
     }
 
+
+    summaryNodePollsBySeason(season);
+}
+
+async function summaryNodePollsBySeason(season: number): Promise<any> {
+    let files = await walk(`./s${season}`, (f: string) => f.endsWith('.csv'));
+
+    var summary_data: any;
+
+    for (let i = 0; i < files.length; i++) {
+        let file = files[i];
+        console.log(`${file}`);
+        var csv = Papa.parse(fs.readFileSync(file, 'utf8'), {
+            skipEmptyLines: true,
+            header: true
+        });
+        for (let j = 0; j < csv.data.length; j++) {
+            // console.log(csv.data[j]);
+            let data: any = csv.data[j];
+            let address = data.address;
+            let vote = data.weight;
+            let name = data.name;
+            console.log(address, vote, name);
+            if (summary_data == undefined) {
+                summary_data = {};
+            }
+            if (summary_data[address] == undefined) {
+                summary_data[address] = {
+                    address: address,
+                    name: name,
+                    vote: 0
+                }
+            }
+            summary_data[address].vote += parseInt(vote);
+        }
+    }
+
+    console.log('-------------------');
+    fs.writeFileSync(`./s${season}-summary.csv`, stringify(Object.values(summary_data), { header: true }));
+}
+
+async function main() {
+    // listNodePollsBySeason(1);
+    // listNodePollsBySeason(2);
+    listNodePollsBySeason(3);
+    // listNodePollsBySeason(4);
 }
 
 main();

@@ -20,7 +20,10 @@
   },
   "dependencies": {
     "@types/crawler": "^1.2.4",
+    "@types/papaparse": "^5.3.10",
     "axios": "^1.6.0",
-    "crawler": "^1.4.0"
+    "crawler": "^1.4.0",
+    "csv-stringify": "^6.4.4",
+    "papaparse": "^5.4.1"
   }
 }
