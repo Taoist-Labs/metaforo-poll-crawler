@@ -80,8 +80,8 @@ function checkThreadId(threadId: number): boolean {
 }
 
 async function listNodePollsBySeason(season: number): Promise<any> {
-    let data_cate_12 = await fetchThreadList(12, 1, 100); // P3
-    let data_cate_61 = await fetchThreadList(61, 1, 100); // SIP
+    let data_cate_12 = await fetchThreadList(12, 1, 200); // P3
+    let data_cate_61 = await fetchThreadList(61, 1, 200); // SIP
 
     let threadIds: Map<string, number> = new Map();
 
@@ -132,7 +132,7 @@ async function listNodePollsBySeason(season: number): Promise<any> {
 
         console.log(pollId, pollTitle, pollThreadId, pollCreatedAt, pollUpdatedAt, pollClosedAt, pollStatus, name, is_nft, tokenAddress, tokenId, tokenType, arweaveHash);
 
-        if (tokenAddress == GATE_NFT_ADDRESS && tokenId == season) {
+        if (tokenAddress.toLowerCase() == GATE_NFT_ADDRESS.toLowerCase() && tokenId == season) {
             const fileUrl = `https://arweave.net/tx/${arweaveHash}/data.csv`;
             const fileName = `./s${season}/thread-${threadId}-${threadTitle}.csv`;
             console.log(`downloading ${fileUrl} to ${fileName}`);
