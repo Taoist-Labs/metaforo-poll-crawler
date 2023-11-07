@@ -114,34 +114,36 @@ async function listNodePollsBySeason(season: number): Promise<any> {
             continue;
         }
 
-        let threadTitle = threadJson.data.thread.title;
-        let poll = threadJson.data.thread.polls[0];
-        let pollId = poll.id;
-        let pollTitle = poll.title;
-        let pollThreadId = poll.thread_id;
-        let pollCreatedAt = poll.created_at;
-        let pollUpdatedAt = poll.updated_at;
-        let pollClosedAt = poll.close_at;
-        let pollStatus = poll.status;
-        let name = poll.name;
-        let is_nft = poll.is_nft;
-        let tokenAddress = poll.token_address;
-        let tokenId = poll.token_id;
-        let tokenType = poll.token_type;
-        let arweaveHash = poll.arweave;
+        for (let i = 0; i < threadJson.data.thread.polls.length; i++) {
+            let threadTitle = threadJson.data.thread.title;
+            let poll = threadJson.data.thread.polls[i];
+            let pollId = poll.id;
+            let pollTitle = poll.title;
+            let pollThreadId = poll.thread_id;
+            let pollCreatedAt = poll.created_at;
+            let pollUpdatedAt = poll.updated_at;
+            let pollClosedAt = poll.close_at;
+            let pollStatus = poll.status;
+            let name = poll.name;
+            let is_nft = poll.is_nft;
+            let tokenAddress = poll.token_address;
+            let tokenId = poll.token_id;
+            let tokenType = poll.token_type;
+            let arweaveHash = poll.arweave;
 
-        console.log(pollId, pollTitle, pollThreadId, pollCreatedAt, pollUpdatedAt, pollClosedAt, pollStatus, name, is_nft, tokenAddress, tokenId, tokenType, arweaveHash);
+            console.log(pollId, pollTitle, pollThreadId, pollCreatedAt, pollUpdatedAt, pollClosedAt, pollStatus, name, is_nft, tokenAddress, tokenId, tokenType, arweaveHash);
 
-        if (tokenAddress.toLowerCase() == GATE_NFT_ADDRESS.toLowerCase() && tokenId == season) {
-            const fileUrl = `https://arweave.net/tx/${arweaveHash}/data.csv`;
-            const fileName = `./s${season}/thread-${threadId}-${threadTitle}.csv`;
-            console.log(`downloading ${fileUrl} to ${fileName}`);
-            const reponse = await axios.get(fileUrl, { responseType: 'stream' });
-            const writer = fs.createWriteStream(fileName);
-            reponse.data.pipe(writer);
-            console.log('download successful');
-        } else {
-            console.log(`skip due to not gated by NFT ${GATE_NFT_ADDRESS} season ${season}.`);
+            if (tokenAddress.toLowerCase() == GATE_NFT_ADDRESS.toLowerCase() && tokenId == season) {
+                const fileUrl = `https://arweave.net/tx/${arweaveHash}/data.csv`;
+                const fileName = `./s${season}/thread-${threadId}-${threadTitle}-${pollId}-${pollTitle}.csv`;
+                console.log(`downloading ${fileUrl} to ${fileName}`);
+                const reponse = await axios.get(fileUrl, { responseType: 'stream' });
+                const writer = fs.createWriteStream(fileName);
+                reponse.data.pipe(writer);
+                console.log('download successful');
+            } else {
+                console.log(`skip due to not gated by NFT ${GATE_NFT_ADDRESS} season ${season}.`);
+            }
         }
 
         saveThreadId(threadId);
@@ -200,8 +202,8 @@ async function summaryNodePollsBySeason(season: number): Promise<any> {
 async function main() {
     // listNodePollsBySeason(1);
     // listNodePollsBySeason(2);
-    // listNodePollsBySeason(3);
-    listNodePollsBySeason(4);
+    listNodePollsBySeason(3);
+    // listNodePollsBySeason(4);
 }
 
 main();
