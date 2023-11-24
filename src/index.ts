@@ -9,6 +9,7 @@ import { stringify } from 'csv-stringify/sync';
 // token id 2 season 2
 // token id 3 season 3
 // token id 4 season 4
+// token id 5 season 5
 const GATE_NFT_ADDRESS = '0x9d34D407D8586478b3e4c39BE633ED3D7be1c80C';
 
 function walk(dir: string, filter?: (f: string) => boolean): Promise<string[]> {
@@ -200,10 +201,13 @@ async function summaryNodePollsBySeason(season: number): Promise<any> {
 }
 
 async function main() {
-    // listNodePollsBySeason(1);
-    // listNodePollsBySeason(2);
-    // listNodePollsBySeason(3);
-    listNodePollsBySeason(4);
+    let season = parseInt(process.argv[2]);
+    if (season == undefined) {
+        console.log('please input season number');
+        return;
+    }
+    console.log(`processing season ${season}`);
+    listNodePollsBySeason(season);
 }
 
 main();
