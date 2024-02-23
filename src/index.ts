@@ -45,7 +45,7 @@ async function fetch(url: string): Promise<any> {
         'accept-encoding': 'gzip, deflate, br',
         'accept-language': 'en-US,en;q=0.9',
         'Api_key': 'metaforo_website',
-        'Authorization': 'Bearer 20944|Sc8x9S1b3xIWksGsQyXwETv9edPGiSzRP7RB29mD',
+        'Authorization': 'Bearer 24835|fXlkEwNrLjYGf2rlwgY6gsXjPaVQGNP2RtCN3Z6x',
         'Cookie': '_ga=GA1.1.313003853.1697860126; ARRAffinity=fce5f2795945f933a772f887ac42ae46802da36d6ace3b2c32343a83eabcca2e; _ga_QPVKNX8BXZ=GS1.1.1699079490.25.1.1699080762.0.0.0; _ga_FPJVR8J0T1=GS1.1.1699084107.10.1.1699086037.0.0.0',
         'Referer': 'https://forum.seedao.xyz/category/19',
         'Sec-Ch-Ua': '"Chromium";v="118", "Google Chrome";v="118", "Not=A?Brand";v="99"',
@@ -57,7 +57,9 @@ async function fetch(url: string): Promise<any> {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
     };
 
+    console.log(`fetching ${url}`);
     const response = await axios.get(url, { headers: headers });
+    console.log(response.status);
     return response.data;
 }
 
