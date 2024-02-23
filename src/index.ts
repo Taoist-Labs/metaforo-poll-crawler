@@ -119,6 +119,9 @@ async function listNodePollsBySeason(season: number): Promise<any> {
 
         for (let i = 0; i < threadJson.data.thread.polls.length; i++) {
             let threadTitle = threadJson.data.thread.title;
+            if (threadTitle.toString().startsWith('[BetaTest] ')) {
+                continue
+            }
             let poll = threadJson.data.thread.polls[i];
             let pollId = poll.id;
             let pollTitle = poll.title;
@@ -133,6 +136,8 @@ async function listNodePollsBySeason(season: number): Promise<any> {
             let tokenId = poll.token_id;
             let tokenType = poll.token_type;
             let arweaveHash = poll.arweave;
+
+            console.log(threadTitle);
 
             console.log(pollId, pollTitle, pollThreadId, pollCreatedAt, pollUpdatedAt, pollClosedAt, pollStatus, name, is_nft, tokenAddress, tokenId, tokenType, arweaveHash);
 
