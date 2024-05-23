@@ -110,12 +110,12 @@ async function fetchThread(threadId: number): Promise<any> {
     return await fetch(url, `https://forum.seedao.xyz/thread/${threadId}`);
 }
 
-async function fetchPollOptionData(poll_id: number, option_id: number): Promise<any> {
+async function fetchPollOptionData(poll_id: number, option_id: number, page: number): Promise<any> {
     let url = `https://forum.seedao.xyz/api/poll/list`;
 
     const form = new FormData();
     form.append('option_id', option_id);
-    form.append('page', 1);
+    form.append('page', page);
     form.append('group_name', 'seedao');
 
     return await post(url, form, `https://forum.seedao.xyz/thread/${poll_id}`);
@@ -350,14 +350,22 @@ async function listNodePollsBySeason(season: number): Promise<any> {
                 console.log(`skip due to already processed ${threadId},${pollId},${optionId}.`);
                 continue;
             }
-            let pollOptionData = await fetchPollOptionData(pollId, optionId);
-            for (let j = 0; j < pollOptionData.data.list.length; j++) {
-                let userId = pollOptionData.data.list[j].uid;
-                console.log(threadId, pollId, optionId, userId);
-                if (checkUserPollInfo(threadId, pollId, optionId, userId)) {
-                    console.log(`skip due to already processed ${threadId},${pollId},${optionId},${userId}.`);
-                } else {
-                    saveUserPollInfo(threadId, pollId, optionId, userId);
+
+            let pageSize = 10;
+            let pageNum = Math.ceil(optionVoters / pageSize);
+            for (let page = 1; page <= pageNum; page++) {
+                let pollOptionData = await fetchPollOptionData(pollId, optionId, page);
+                // if (threadId == 50800 && pollId == 2726) {
+                //     console.log(JSON.stringify(pollOptionData));
+                // }
+                for (let j = 0; j < pollOptionData.data.list.length; j++) {
+                    let userId = pollOptionData.data.list[j].uid;
+                    console.log(threadId, pollId, optionId, userId);
+                    if (checkUserPollInfo(threadId, pollId, optionId, userId)) {
+                        console.log(`skip due to already processed ${threadId},${pollId},${optionId},${userId}.`);
+                    } else {
+                        saveUserPollInfo(threadId, pollId, optionId, userId);
+                    }
                 }
             }
         }
