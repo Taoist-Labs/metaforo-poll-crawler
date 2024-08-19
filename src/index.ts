@@ -3,7 +3,6 @@ import path from "path";
 import axios from "axios";
 import Papa from "papaparse";
 import { stringify } from 'csv-stringify/sync';
-import { group } from "console";
 
 // Node NFT 
 // token id 1 season 1
@@ -12,6 +11,7 @@ import { group } from "console";
 // token id 4 season 4
 // token id 5 season 5
 // token id 6 season 6
+// token id 7 season 7
 const GATE_NFT_ADDRESS = '0x9d34D407D8586478b3e4c39BE633ED3D7be1c80C';
 
 function walk(dir: string, filter?: (f: string) => boolean): Promise<string[]> {
@@ -484,6 +484,11 @@ async function main() {
         console.log('please input season number');
         return;
     }
+
+    console.log(`cleaning up...`);
+    fs.truncateSync('poll_option_ids.txt');
+    fs.truncateSync('user_poll_info.txt');
+
     console.log(`processing season ${season}`);
     listNodePollsBySeason(season);
 }
